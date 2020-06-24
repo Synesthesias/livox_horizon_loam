@@ -17,6 +17,16 @@ ROS Kinetic or Melodic. [ROS Installation](http://wiki.ros.org/ROS/Installation)
 ### 1.2. **Ceres Solver**
 Follow [Ceres Installation](http://ceres-solver.org/installation.html). Recommend version 1.13.0 and 1.14.0.
 
+```
+sudo apt install python-wstool
+cd ./your/catkin_ws
+wstool init src
+wstool merge -t src src/livox_horizon_loam/livox_horizon_loam.rosinstall
+wstool update -t src
+rosdep update
+rosdep install --from-paths src --ignore-src --rosdistro=${ROS_DISTRO} -y
+```
+
 ### 1.3. **PCL**
 Follow [PCL Installation](http://www.pointclouds.org/downloads/linux.html). Recommend version 1.7.
 
