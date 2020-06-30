@@ -55,3 +55,24 @@ add_executable(imu_process src/imu_processor/data_process_node.cpp src/imu_proce
                            src/imu_processor/gyr_int.cpp )
 target_link_libraries(imu_process ${catkin_LIBRARIES} ${PCL_LIBRARIES} ${OpenCV_LIBS})
 
+install(
+  TARGETS
+  scanRegistration
+  laserOdometry
+  laserMapping
+  livox_repub
+  imu_process
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+install(DIRECTORY launch/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+        PATTERN ".svn" EXCLUDE
+        )
+
+install(DIRECTORY rviz_cfg/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/rviz_cfg
+        PATTERN ".svn" EXCLUDE
+        )
