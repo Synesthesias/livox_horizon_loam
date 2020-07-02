@@ -42,6 +42,7 @@
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
+#include <ros/console.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_broadcaster.h>
@@ -195,7 +196,7 @@ int main(int argc, char **argv) {
 
   nh.param<int>("mapping_skip_frame", skipFrameNum, 2);
 
-  printf("Mapping %d Hz \n", 10 / skipFrameNum);
+  ROS_INFO("Mapping %d Hz \n", 10 / skipFrameNum);
 
   ros::Subscriber subCornerPointsSharp = nh.subscribe<sensor_msgs::PointCloud2>(
       "/laser_cloud_sharp", 100, laserCloudSharpHandler);
@@ -251,7 +252,7 @@ int main(int argc, char **argv) {
           timeCornerPointsLessSharp != timeLaserCloudFullRes ||
           timeSurfPointsFlat != timeLaserCloudFullRes ||
           timeSurfPointsLessFlat != timeLaserCloudFullRes) {
-        printf("unsync messeage!");
+        ROS_WARN("unsync messeage!");
         ROS_BREAK();
       }
 
@@ -353,7 +354,7 @@ int main(int argc, char **argv) {
                 else
                   s = 1.0;
 
-                // printf(" Edge s------ %f  \n", s);
+                // ROS_INFO(" Edge s------ %f  \n", s);
                 ceres::CostFunction *cost_function = LidarEdgeFactor::Create(
                     curr_point, last_point_a, last_point_b, s);
                 problem.AddResidualBlock(cost_function, loss_function, para_q,
@@ -377,7 +378,7 @@ int main(int argc, char **argv) {
                 matA0(j, 0) = laserCloudSurfLast->points[pointSearchInd[j]].x;
                 matA0(j, 1) = laserCloudSurfLast->points[pointSearchInd[j]].y;
                 matA0(j, 2) = laserCloudSurfLast->points[pointSearchInd[j]].z;
-                // printf(" pts %f %f %f ", matA0(j, 0), matA0(j, 1), matA0(j,
+                // ROS_INFO(" pts %f %f %f ", matA0(j, 0), matA0(j, 1), matA0(j,
                 // 2));
               }
               // find the norm of plane
@@ -423,7 +424,7 @@ int main(int argc, char **argv) {
                   s = (surfPointsFlat->points[i].intensity - int(surfPointsFlat->points[i].intensity))*10;
                 else
                   s = 1.0;
-                // printf(" Plane s------ %f  \n", s);
+                // ROS_INFO(" Plane s------ %f  \n", s);
                 ceres::CostFunction *cost_function = LidarPlaneFactor::Create(
                     curr_point, last_point_a, last_point_b, last_point_c, s);
                 problem.AddResidualBlock(cost_function, loss_function, para_q,
@@ -433,12 +434,12 @@ int main(int argc, char **argv) {
             }
             //}
           }
-          // printf("coner_correspondance %d, plane_correspondence %d \n",
+          // ROS_INFO("coner_correspondance %d, plane_correspondence %d \n",
           // corner_correspondence, plane_correspondence);
-          printf("data association time %f ms \n", t_data.toc());
+          ROS_INFO("data association time %f ms \n", t_data.toc());
 
           if ((corner_correspondence + plane_correspondence) < 10) {
-            printf(
+            ROS_WARN(
                 "less correspondence! "
                 "*************************************************\n");
           }
@@ -446,13 +447,14 @@ int main(int argc, char **argv) {
           TicToc t_solver;
           ceres::Solver::Options options;
           options.linear_solver_type = ceres::DENSE_QR;
-          options.max_num_iterations = 20;
+          options.max_num_iterations = 2;
+//          options.max_num_iterations = 20;
           options.minimizer_progress_to_stdout = false;
           ceres::Solver::Summary summary;
           ceres::Solve(options, &problem, &summary);
-          printf("solver time %f ms \n", t_solver.toc());
+          ROS_INFO("solver time %f ms \n", t_solver.toc());
         }
-        printf("optimization twice time %f \n", t_opt.toc());
+        ROS_INFO("optimization twice time %f \n", t_opt.toc());
 
         t_w_curr = t_w_curr + q_w_curr * t_last_curr;
         q_w_curr = q_w_curr * q_last_curr;
@@ -545,8 +547,8 @@ int main(int argc, char **argv) {
         laserCloudFullRes3.header.frame_id = "/aft_mapped";
         pubLaserCloudFullRes.publish(laserCloudFullRes3);
       }
-      printf("publication time %f ms \n", t_pub.toc());
-      printf("whole laserOdometry time %f ms \n \n", t_whole.toc());
+      ROS_INFO("publication time %f ms \n", t_pub.toc());
+      ROS_INFO("whole laserOdometry time %f ms \n \n", t_whole.toc());
       if (t_whole.toc() > 100) ROS_WARN("odometry process over 100ms");
 
       frameCount++;

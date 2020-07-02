@@ -41,6 +41,7 @@
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 #include <ros/ros.h>
+#include <ros/console.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <tf/transform_datatypes.h>
@@ -88,7 +89,7 @@ ros::Publisher pub_curvature;
 
 bool PUB_EACH_LINE = true;
 
-double MINIMUM_RANGE = 0.1;
+double MINIMUM_RANGE = 5.0;
 double THRESHOLD_FLAT = 0.01;
 double THRESHOLD_SHARP = 0.01;
 
@@ -361,7 +362,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
   }
 
   cloudSize = count;
-  printf("points size %d \n", cloudSize);
+  ROS_INFO("points size %d \n", cloudSize);
 
   pcl::PointCloud<PointType>::Ptr laserCloud(new pcl::PointCloud<PointType>());
   for (int i = 0; i < N_SCANS; i++) {
@@ -372,7 +373,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
     // scanEndInd[i]);
   }
 
-  printf("prepare time %f \n", t_prepare.toc());
+  ROS_INFO("prepare time %f \n", t_prepare.toc());
 
   int kNumCurvSize = 5;
   constexpr int kNumRegion = 50;       // 6
@@ -539,7 +540,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
             // ROS_INFO("pick sharp at sort_id [%d], primary id[%d]", k, ind);
             // if (ind == 211 || ind == 212 || ind == 213 || ind == 214) {
             //   const auto &pt = laserCloud->points[ind];
-            //   printf("%d-[%f, %f, %f]\n", ind, pt.x, pt.y, pt.z);
+            //   ROS_INFO("%d-[%f, %f, %f]\n", ind, pt.x, pt.y, pt.z);
             // }
           } else if (largestPickedNum <= 20) {
             cloudLabel[ind] = 1;
@@ -638,15 +639,15 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
       pcl::PointCloud<PointType> surfPointsLessFlatScanDS;
       pcl::VoxelGrid<PointType> downSizeFilter;
       downSizeFilter.setInputCloud(surfPointsLessFlatScan);
-      downSizeFilter.setLeafSize(0.2, 0.2, 0.2);
+      downSizeFilter.setLeafSize(0.4, 0.4, 0.4);
       downSizeFilter.filter(surfPointsLessFlatScanDS);
       surfPointsLessFlat += surfPointsLessFlatScanDS;
     } else {
       surfPointsLessFlat += *surfPointsLessFlatScan;
     }
   }
-  printf("sort q time %f \n", t_q_sort);
-  printf("seperate points time %f \n", t_pts.toc());
+  ROS_INFO("sort q time %f \n", t_q_sort);
+  ROS_INFO("seperate points time %f \n", t_pts.toc());
 
   if (false) {
     removeClosedPointCloud(*laserCloud, *laserCloud, MINIMUM_RANGE);
@@ -706,7 +707,7 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr &laserCloudMsg) {
     }
   }
 
-  printf("scan registration time %f ms *************\n", t_whole.toc());
+  ROS_INFO("scan registration time %f ms *************\n", t_whole.toc());
   if (t_whole.toc() > 100) ROS_WARN("scan registration process over 100ms");
 }
 
@@ -718,10 +719,10 @@ int main(int argc, char **argv) {
   nh.param<double>("threshold_flat", THRESHOLD_FLAT, 0.01);
   nh.param<double>("threshold_sharp", THRESHOLD_SHARP, 0.01);
 
-  printf("scan line number %d \n", N_SCANS);
+  ROS_INFO("scan line number %d \n", N_SCANS);
 
   if (N_SCANS != 6) {
-    printf("only support livox horizon lidar!");
+    ROS_WARN("only support livox horizon lidar!");
     return 0;
   }
 
