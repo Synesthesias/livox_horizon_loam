@@ -227,11 +227,6 @@ int main(int argc, char **argv) {
   ros::Publisher pubLaserOdometry =
       nh.advertise<nav_msgs::Odometry>("/laser_odom_to_init", 100);
 
-  ros::Publisher pubLaserPath =
-      nh.advertise<nav_msgs::Path>("/laser_odom_path", 100);
-
-  nav_msgs::Path laserPath;
-
   int frameCount = 0;
   ros::Rate rate(100);
 
@@ -476,14 +471,6 @@ int main(int argc, char **argv) {
       laserOdometry.pose.pose.position.y = t_w_curr.y();
       laserOdometry.pose.pose.position.z = t_w_curr.z();
       pubLaserOdometry.publish(laserOdometry);
-
-      geometry_msgs::PoseStamped laserPose;
-      laserPose.header = laserOdometry.header;
-      laserPose.pose = laserOdometry.pose.pose;
-      laserPath.header.stamp = laserOdometry.header.stamp;
-      laserPath.poses.push_back(laserPose);
-      laserPath.header.frame_id = "/camera_init";
-      pubLaserPath.publish(laserPath);
 
       // transform corner features and plane features to the scan end point
       if (DISTORTION) {
