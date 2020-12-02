@@ -141,9 +141,7 @@ std::vector<float> pointSearchSqDis;
 PointType pointOri, pointSel;
 
 ros::Publisher pubLaserCloudSurround, pubLaserCloudMap, pubLaserCloudFullRes,
-    pubOdomAftMapped, pubOdomAftMappedHighFrec, pubLaserAfterMappedPath;
-
-nav_msgs::Path laserAfterMappedPath;
+    pubOdomAftMapped, pubOdomAftMappedHighFrec;
 
 // set initial guess
 void transformAssociateToMap() {
@@ -930,14 +928,6 @@ void process() {
       odomAftMapped.pose.pose.position.z = t_w_curr.z();
       pubOdomAftMapped.publish(odomAftMapped);
 
-      geometry_msgs::PoseStamped laserAfterMappedPose;
-      laserAfterMappedPose.header = odomAftMapped.header;
-      laserAfterMappedPose.pose = odomAftMapped.pose.pose;
-      laserAfterMappedPath.header.stamp = odomAftMapped.header.stamp;
-      laserAfterMappedPath.header.frame_id = "/camera_init";
-      laserAfterMappedPath.poses.push_back(laserAfterMappedPose);
-      pubLaserAfterMappedPath.publish(laserAfterMappedPath);
-
       static tf::TransformBroadcaster br;
       tf::Transform transform;
       tf::Quaternion q;
@@ -998,9 +988,6 @@ int main(int argc, char **argv) {
 
   pubOdomAftMappedHighFrec =
       nh.advertise<nav_msgs::Odometry>("/aft_mapped_to_init_high_frec", 100);
-
-  pubLaserAfterMappedPath =
-      nh.advertise<nav_msgs::Path>("/aft_mapped_path", 100);
 
   for (int i = 0; i < laserCloudNum; i++) {
     laserCloudCornerArray[i].reset(new pcl::PointCloud<PointType>());
